@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>고구마 – 우리 동네 중고 거래</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍠</text></svg>" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/list.css" />
+  <link rel="stylesheet" href="css/detail.css" />
+  <link rel="stylesheet" href="css/write.css" />
+</head>
+<body>
+  <!-- [화면1] 상품 목록 -->
+  <div id="list-screen"></div>
+
+  <!-- [화면2] 상세 팝업 -->
+  <div id="detail-root"></div>
+
+  <!-- [화면3] 글쓰기 -->
+  <div id="write-root"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/list.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/write.js"></script>
+  <script>
+    // 모든 화면 모듈이 등록된 뒤 첫 화면을 그립니다.
+    Goguma.list.render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+/* =========================================================
+   고구마 공통 디자인 토큰 & 공통 컴포넌트
+   세 화면(목록 / 상세 / 글쓰기)은 반드시 이 변수와 클래스를 사용합니다.
+   ========================================================= */
+:root {
+  /* 색 */
+  --purple-50:  #f7f2fc;
+  --purple-100: #efe4fa;
+  --purple-200: #dcc6f2;
+  --purple-400: #a774d9;
+  --purple-500: #8b4fc9;   /* 포인트 */
+  --purple-600: #7339ad;   /* hover */
+  --purple-700: #5b2a8a;
+  --sweet-orange: #f2a65a; /* 고구마 속살 보조색 */
+
+  --bg:        #fbf9fe;
+  --surface:   #ffffff;
+  --border:    #ebe4f3;
+  --text:      #2b2233;
+  --text-sub:  #6f6579;
+  --text-mute: #a198ab;
+
+  /* 판매 상태 */
+  --status-selling-bg:  #e6f6ec;  --status-selling-fg:  #1f8a4c;
+  --status-reserved-bg: #fff2df;  --status-reserved-fg: #c76d00;
+  --status-sold-bg:     #eeecf1;  --status-sold-fg:     #7d7686;
+
+  /* 글자 크기 */
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 26px;
+
+  /* 모양 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(91, 42, 138, .08);
+  --shadow-md: 0 6px 20px rgba(91, 42, 138, .12);
+  --shadow-lg: 0 18px 50px rgba(43, 34, 51, .25);
+
+  --gap: 16px;
+  --container: 1080px;
+  --header-h: 64px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+}
+body.no-scroll { overflow: hidden; }
+img { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gap); }
+.hidden { display: none !important; }
+
+/* ---------- 버튼 (세 화면 공통) ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 40px; padding: 0 16px;
+  border: 1px solid transparent; border-radius: var(--radius-sm);
+  font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+}
+.btn-primary { background: var(--purple-500); color: #fff; }
+.btn-primary:hover { background: var(--purple-600); }
+.btn-outline { background: var(--surface); color: var(--purple-600); border-color: var(--purple-200); }
+.btn-outline:hover { background: var(--purple-50); border-color: var(--purple-400); }
+.btn-ghost { background: transparent; color: var(--text-sub); }
+.btn-ghost:hover { background: var(--purple-50); color: var(--purple-600); }
+.btn-lg { height: 48px; font-size: var(--fs-md); border-radius: var(--radius-md); }
+.btn-block { width: 100%; }
+.btn-icon { width: 40px; padding: 0; border-radius: var(--radius-pill); font-size: var(--fs-lg); }
+
+/* ---------- 칩 (카테고리 등) ---------- */
+.chip {
+  display: inline-flex; align-items: center; height: 34px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--text-sub);
+  font-size: var(--fs-sm); font-weight: 500; cursor: pointer; white-space: nowrap;
+  transition: all .15s;
+}
+.chip:hover { border-color: var(--purple-400); color: var(--purple-600); }
+.chip.is-active { background: var(--purple-500); border-color: var(--purple-500); color: #fff; }
+
+/* ---------- 판매 상태 배지 ---------- */
+.badge {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+  border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 700;
+}
+.badge-selling  { background: var(--status-selling-bg);  color: var(--status-selling-fg); }
+.badge-reserved { background: var(--status-reserved-bg); color: var(--status-reserved-fg); }
+.badge-sold     { background: var(--status-sold-bg);     color: var(--status-sold-fg); }
+.badge-category { background: var(--purple-50); color: var(--purple-600); }
+
+/* ---------- 입력 필드 ---------- */
+.input, .select, .textarea {
+  width: 100%; height: 44px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); font-size: var(--fs-md);
+  transition: border-color .15s, box-shadow .15s;
+}
+.textarea { height: auto; min-height: 140px; padding: 12px 14px; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none; border-color: var(--purple-400); box-shadow: 0 0 0 3px var(--purple-100);
+}
+.label { display: block; margin-bottom: 6px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+
+/* ---------- 모달 공통 틀 ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: var(--gap);
+  background: rgba(43, 34, 51, .5);
+}
+.modal {
+  position: relative; width: 100%; max-width: 520px; max-height: calc(100vh - 32px);
+  overflow-y: auto; background: var(--surface);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+.modal-close {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: rgba(255, 255, 255, .92); color: var(--text); box-shadow: var(--shadow-sm);
+}
+.modal-close:hover { background: #fff; color: var(--purple-600); }
+
+@media (max-width: 600px) {
+  .modal-backdrop { padding: 0; align-items: flex-end; }
+  .modal { max-width: none; max-height: 94vh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+}

@@ -1,0 +1,181 @@
+/* =========================================================
+   [화면1] 상품 목록 – 모든 클래스는 .list- 접두사
+   색/폰트/라운드/그림자는 base.css 변수만 사용합니다.
+   ========================================================= */
+
+/* ---------- 헤더 ---------- */
+.list-header {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.list-header-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "logo search actions";
+  align-items: center;
+  gap: var(--gap);
+  min-height: var(--header-h);
+}
+.list-logo {
+  grid-area: logo;
+  font-size: var(--fs-xl); font-weight: 800;
+  color: var(--purple-600); text-decoration: none; white-space: nowrap;
+  border-radius: var(--radius-sm);
+}
+.list-logo:hover { color: var(--purple-700); }
+.list-logo:focus-visible { outline: 2px solid var(--purple-400); outline-offset: 2px; }
+
+.list-search { grid-area: search; position: relative; max-width: 480px; width: 100%; justify-self: center; }
+.list-search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: var(--fs-sm); pointer-events: none; opacity: .6;
+}
+.list-search-input { padding-left: 40px; background: var(--bg); }
+.list-search-input::placeholder { color: var(--text-mute); }
+
+.list-actions { grid-area: actions; display: flex; gap: 8px; }
+
+/* ---------- 본문 / 필터 ---------- */
+.list-main { padding-top: 20px; padding-bottom: 48px; }
+
+.list-filters {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.list-chips {
+  display: flex; gap: 8px; flex-wrap: wrap; min-width: 0;
+}
+.list-chips .chip:focus-visible { outline: 2px solid var(--purple-400); outline-offset: 2px; }
+
+/* 토글 스위치 */
+.list-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-sub);
+  cursor: pointer; user-select: none; white-space: nowrap;
+}
+.list-toggle-input {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); border: 0; white-space: nowrap;
+}
+.list-toggle-track {
+  position: relative; flex: none;
+  width: 44px; height: 26px; border-radius: var(--radius-pill);
+  background: var(--border);
+  transition: background .2s;
+}
+.list-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: var(--radius-pill);
+  background: var(--surface); box-shadow: var(--shadow-sm);
+  transition: transform .2s;
+}
+.list-toggle:hover .list-toggle-track { background: var(--purple-200); }
+.list-toggle-input:checked + .list-toggle-track { background: var(--purple-500); }
+.list-toggle-input:checked + .list-toggle-track .list-toggle-thumb { transform: translateX(18px); }
+.list-toggle-input:checked ~ .list-toggle-text { color: var(--purple-600); }
+.list-toggle-input:focus-visible + .list-toggle-track { outline: 2px solid var(--purple-400); outline-offset: 2px; }
+
+.list-count {
+  margin: 16px 0 12px;
+  font-size: var(--fs-sm); color: var(--text-sub);
+  min-height: 1.5em;
+}
+
+/* ---------- 카드 그리드 ---------- */
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px var(--gap);
+}
+.list-grid.is-empty { display: block; }
+
+.list-card {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; padding: 0; text-align: left;
+  background: none; border: 0; cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.list-card:focus-visible { outline: 2px solid var(--purple-400); outline-offset: 4px; }
+
+.list-card-thumb {
+  display: block; position: relative;
+  aspect-ratio: 1 / 1; overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--purple-50);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.list-card-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .25s;
+}
+.list-card:hover .list-card-thumb { box-shadow: var(--shadow-md); }
+.list-card:hover .list-card-thumb img { transform: scale(1.04); }
+.list-card.is-sold .list-card-thumb img { opacity: .5; }
+
+.list-card-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.list-card-title {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden; word-break: break-all;
+  font-size: var(--fs-md); font-weight: 500; line-height: 1.4; color: var(--text);
+}
+.list-card:hover .list-card-title { color: var(--purple-600); }
+.list-card-meta {
+  font-size: var(--fs-xs); color: var(--text-sub);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.list-card-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 6px; margin-top: 2px;
+}
+.list-card-price { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
+.list-card.is-sold .list-card-price { color: var(--text-sub); }
+
+/* ---------- 빈 상태 ---------- */
+.list-empty {
+  padding: 64px var(--gap); text-align: center;
+  background: var(--surface); border: 1px dashed var(--purple-200);
+  border-radius: var(--radius-lg);
+}
+.list-empty-icon { font-size: var(--fs-2xl); margin-bottom: 8px; }
+.list-empty-title { font-size: var(--fs-lg); font-weight: 700; color: var(--text); }
+.list-empty-desc { margin-top: 4px; font-size: var(--fs-sm); color: var(--text-sub); }
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1023px) {
+  .list-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .list-header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "logo actions"
+      "search search";
+    row-gap: 10px;
+    padding-top: 10px; padding-bottom: 12px;
+    min-height: 0;
+  }
+  .list-search { max-width: none; }
+  .list-logo { font-size: var(--fs-lg); }
+  .list-actions { gap: 6px; }
+
+  .list-main { padding-top: 14px; }
+  .list-filters { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
+  /* 칩: 가로 스크롤 한 줄 (컨테이너 패딩까지 꽉 차게) */
+  .list-chips {
+    flex-wrap: nowrap; overflow-x: auto;
+    margin: 0 calc(var(--gap) * -1); padding: 2px var(--gap) 4px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .list-chips::-webkit-scrollbar { display: none; }
+  .list-chips .chip { flex: none; }
+  .list-toggle { align-self: flex-end; }
+
+  .list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+  .list-card-title { font-size: var(--fs-sm); }
+  .list-card-price { font-size: var(--fs-sm); }
+  .list-card .badge { height: 22px; padding: 0 8px; }
+}
