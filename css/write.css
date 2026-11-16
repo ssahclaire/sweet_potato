@@ -1,8 +1,7 @@
 /* =========================================================
    [화면3] 글쓰기 – 모든 클래스는 .write- 접두사
-   색/글자/라운드는 base.css 변수만 사용 (경고색 --danger 만 로컬 정의)
+   색/글자/라운드는 base.css 변수만 사용 (경고색은 base.css의 --danger)
    ========================================================= */
-.write-backdrop { --danger: #e5484d; }
 
 .write-modal {
   max-width: 560px;
@@ -68,7 +67,7 @@
   position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
   font-size: var(--fs-md); color: var(--text-sub); pointer-events: none;
 }
-.write-share-hint { color: var(--sweet-orange); font-weight: 600; }
+.write-share-hint { color: var(--purple-600); font-weight: 600; }
 
 /* ---------- 판매 상태 (칩 + 상태 색) ---------- */
 .write-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

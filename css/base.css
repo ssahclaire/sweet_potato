@@ -11,7 +11,9 @@
   --purple-500: #8b4fc9;   /* 포인트 */
   --purple-600: #7339ad;   /* hover */
   --purple-700: #5b2a8a;
-  --sweet-orange: #f2a65a; /* 고구마 속살 보조색 */
+  --plum-100:   #f8e6f2;   /* 보조: 고구마 껍질의 자줏빛 */
+  --plum-600:   #9b3a7c;
+  --danger:     #d6336c;   /* 오류 표시 (베리 레드) */
 
   --bg:        #fbf9fe;
   --surface:   #ffffff;
@@ -21,8 +23,9 @@
   --text-mute: #a198ab;
 
   /* 판매 상태 */
-  --status-selling-bg:  #e6f6ec;  --status-selling-fg:  #1f8a4c;
-  --status-reserved-bg: #fff2df;  --status-reserved-fg: #c76d00;
+  /* 모두 퍼플 계열 안에서 진하기·채도로 구분: 판매중(진보라) / 예약중(자두빛) / 거래 완료(회색) */
+  --status-selling-bg:  var(--purple-100);  --status-selling-fg:  #6a2fb0;
+  --status-reserved-bg: var(--plum-100);    --status-reserved-fg: var(--plum-600);
   --status-sold-bg:     #eeecf1;  --status-sold-fg:     #7d7686;
 
   /* 글자 크기 */
@@ -99,7 +102,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .badge-selling  { background: var(--status-selling-bg);  color: var(--status-selling-fg); }
 .badge-reserved { background: var(--status-reserved-bg); color: var(--status-reserved-fg); }
 .badge-sold     { background: var(--status-sold-bg);     color: var(--status-sold-fg); }
-.badge-category { background: var(--purple-50); color: var(--purple-600); }
+.badge-category { background: var(--surface); color: var(--text-sub); box-shadow: inset 0 0 0 1px var(--border); }
 
 /* ---------- 입력 필드 ---------- */
 .input, .select, .textarea {

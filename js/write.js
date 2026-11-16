@@ -76,7 +76,7 @@
                          inputmode="numeric" placeholder="0" autocomplete="off" />
                   <span class="write-price-unit" aria-hidden="true">원</span>
                 </div>
-                <p class="write-help write-share-hint hidden">🧡 0원은 나눔으로 등록돼요.</p>
+                <p class="write-help write-share-hint hidden">💜 0원은 나눔으로 등록돼요.</p>
                 <p class="write-error" aria-live="polite"></p>
               </div>
 
