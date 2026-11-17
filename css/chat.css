@@ -1,0 +1,113 @@
+/* =========================================================
+   채팅 – 모든 클래스는 .chat- 접두사
+   색/글자/라운드는 base.css 변수만 사용
+   ========================================================= */
+.chat-backdrop { z-index: 105; }
+.chat-modal {
+  max-width: 480px; height: min(720px, calc(100vh - 32px));
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* 헤더 */
+.chat-header {
+  flex: none; position: relative;
+  display: flex; align-items: center; gap: 4px;
+  min-height: 64px; padding: 0 64px 0 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.chat-back { font-size: var(--fs-2xl); line-height: 1; color: var(--text); }
+.chat-title {
+  min-width: 0; padding-left: 8px;
+  font-size: var(--fs-lg); font-weight: 700; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.chat-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* 로딩/빈/오류 */
+.chat-state { margin: auto; padding: 40px 24px; text-align: center; }
+.chat-state-icon { font-size: var(--fs-2xl); margin-bottom: 8px; }
+.chat-state-title { font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.chat-state-desc { margin-top: 4px; font-size: var(--fs-sm); color: var(--text-sub); word-break: keep-all; }
+.chat-retry { margin-top: 16px; }
+
+/* 목록 */
+.chat-list { list-style: none; overflow-y: auto; }
+.chat-list-item {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 14px 16px; border: 0; border-bottom: 1px solid var(--border);
+  background: var(--surface); text-align: left; cursor: pointer;
+}
+.chat-list-item:hover { background: var(--purple-50); }
+.chat-avatar {
+  flex: none; width: 44px; height: 44px; border-radius: var(--radius-pill);
+  object-fit: cover; background: var(--purple-100);
+}
+.chat-list-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.chat-list-top { display: flex; align-items: center; gap: 6px; }
+.chat-list-name { font-size: var(--fs-md); font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-list-time { margin-left: auto; flex: none; font-size: var(--fs-xs); color: var(--text-mute); }
+.chat-list-product { font-size: var(--fs-xs); color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-list-last { font-size: var(--fs-sm); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-list-thumb { flex: none; width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; }
+
+.chat-role {
+  flex: none; padding: 1px 8px; border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 700;
+}
+.chat-role-sell { background: var(--plum-100); color: var(--plum-600); }
+.chat-role-buy  { background: var(--purple-100); color: var(--purple-700); }
+
+/* 방: 상품 요약 */
+.chat-product {
+  flex: none; display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.chat-product-thumb { flex: none; width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; }
+.chat-product-info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.chat-product-title { font-size: var(--fs-sm); font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-product-meta { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--purple-600); }
+
+.chat-notice {
+  flex: none; margin: 10px 16px 0; padding: 8px 12px;
+  border-radius: var(--radius-sm); background: var(--purple-50);
+  font-size: var(--fs-xs); color: var(--text-sub);
+}
+
+/* 방: 메시지 */
+.chat-messages {
+  flex: 1; min-height: 0; overflow-y: auto; list-style: none;
+  display: flex; flex-direction: column; gap: 10px; padding: 16px;
+  background: var(--bg);
+}
+.chat-empty { margin: auto; font-size: var(--fs-sm); color: var(--text-mute); }
+.chat-msg { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; }
+.chat-msg.is-mine { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg.is-theirs { align-self: flex-start; }
+.chat-bubble {
+  padding: 9px 13px; border-radius: var(--radius-md);
+  font-size: var(--fs-sm); line-height: 1.5;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.is-mine .chat-bubble { background: var(--purple-500); color: #fff; border-bottom-right-radius: 4px; }
+.is-theirs .chat-bubble { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.chat-time { flex: none; font-size: 11px; color: var(--text-mute); }
+
+/* 방: 입력 */
+.chat-form {
+  flex: none; display: flex; align-items: flex-end; gap: 8px;
+  padding: 10px 12px; border-top: 1px solid var(--border); background: var(--surface);
+}
+.chat-input { min-height: 44px; max-height: 120px; padding: 10px 14px; resize: none; }
+.chat-send { flex: none; height: 44px; }
+.chat-send:disabled { opacity: .6; cursor: progress; }
+.chat-error { flex: none; padding: 0 16px 8px; font-size: var(--fs-xs); color: var(--danger); background: var(--surface); }
+.chat-error:empty { display: none; }
+.chat-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (max-width: 600px) {
+  .chat-modal { height: 94vh; }
+  .chat-header { min-height: 56px; padding-right: 60px; }
+  .chat-modal .modal-close { top: 8px; right: 8px; }
+  .chat-form { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+}

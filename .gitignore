@@ -1,0 +1,8 @@
+# 비밀 키 (service_role key, access token 등) – 절대 올리지 않음
+.env
+.env.*
+
+# 운영체제/에디터 파일
+.DS_Store
+Thumbs.db
+node_modules/

@@ -28,6 +28,7 @@
 
 .write-meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .write-count { margin-top: 6px; margin-left: auto; font-size: var(--fs-xs); color: var(--text-mute); }
+.write-count.is-max { color: var(--purple-600); font-weight: 600; }
 
 /* ---------- 이미지 업로드 ---------- */
 .write-upload {

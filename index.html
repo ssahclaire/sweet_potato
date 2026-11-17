@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="css/list.css" />
   <link rel="stylesheet" href="css/detail.css" />
   <link rel="stylesheet" href="css/write.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/chat.css" />
 </head>
 <body>
   <!-- [화면1] 상품 목록 -->
@@ -20,13 +22,26 @@
   <!-- [화면3] 글쓰기 -->
   <div id="write-root"></div>
 
+  <!-- 채팅 -->
+  <div id="chat-root"></div>
+
+  <!-- 로그인 / 회원가입 -->
+  <div id="auth-root"></div>
+
+  <!-- Supabase 로그인용 라이브러리 (버전 고정) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/list.js"></script>
   <script src="js/detail.js"></script>
   <script src="js/write.js"></script>
+  <script src="js/chat.js"></script>
   <script>
     // 모든 화면 모듈이 등록된 뒤 첫 화면을 그립니다.
     Goguma.list.render();
+    // Supabase에서 상품을 불러오면 목록이 다시 그려집니다.
+    Goguma.loadProducts();
   </script>
 </body>
 </html>

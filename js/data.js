@@ -1,5 +1,7 @@
 /* =========================================================
-   고구마 공통 데이터 & 유틸 (저장 기능 없음 – 메모리에서만 동작)
+   고구마 공통 데이터 & 유틸
+   - 상품 목록은 Supabase(products + profiles)에서 읽어 옵니다. (js/config.js)
+   - 글쓰기는 로그인한 회원만, 본인 프로필 이름으로 DB에 저장됩니다. (js/auth.js, js/write.js)
    모든 화면은 window.Goguma 를 통해서만 데이터에 접근합니다.
    ========================================================= */
 (function () {
@@ -24,52 +26,81 @@
   }
 
   const MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
-  const now = Date.now();
 
-  const sellers = {
-    s1: { nickname: '보라고구마', region: '마포구 망원동', avatar: placeholderImage('🍠', '#efe4fa', '#dcc6f2') },
-    s2: { nickname: '군고구마왕', region: '성동구 성수동', avatar: placeholderImage('🍇', '#f8e6f2', '#e2b8d6') },
-    s3: { nickname: '책읽는밤',   region: '서대문구 연희동', avatar: placeholderImage('🌙', '#ebe6fb', '#c9bdf0') },
+  // ---------- Supabase에서 상품 불러오기 ----------
+  const CFG = window.GOGUMA_CONFIG || {};
+
+  // 사진이 없는 상품은 카테고리별 기본 이미지
+  const CATEGORY_ART = {
+    '디지털기기':    ['📱', '#efe4fa', '#c3a0e6'],
+    '가구/인테리어': ['🪑', '#f6eefb', '#d9c2ec'],
+    '의류':          ['🧥', '#f1edf5', '#c8bcd6'],
+    '생활가전':      ['🔌', '#f8e6f2', '#dcaed0'],
+    '도서/티켓':     ['🎟️', '#ebe6fb', '#b9a9ec'],
+    '기타':          ['📦', '#f3eafa', '#cfb3e8'],
   };
-
-  const products = [
-    {
-      id: 1, title: '아이폰 14 프로 256GB 딥퍼플', category: '디지털기기', price: 890000,
-      location: '마포구 망원동', createdAt: now - 12 * MIN, status: 'selling',
-      image: placeholderImage('📱', '#efe4fa', '#c3a0e6'), seller: sellers.s1,
-      description: '1년 정도 케이스 끼고 사용했어요.\n배터리 효율 89%, 기스 거의 없습니다.\n박스, 충전 케이블 함께 드려요. 망원역 근처 직거래 원해요.',
-    },
-    {
-      id: 2, title: '원목 4인용 식탁 + 의자 세트', category: '가구/인테리어', price: 150000,
-      location: '성동구 성수동', createdAt: now - 3 * HOUR, status: 'reserved',
-      image: placeholderImage('🪑', '#f6eefb', '#d9c2ec'), seller: sellers.s2,
-      description: '이사 때문에 내놓습니다. 원목이라 튼튼하고 상판 오일 마감 상태 좋아요.\n직접 가져가셔야 해요 (1층, 엘리베이터 X).',
-    },
-    {
-      id: 3, title: '오버핏 울 코트 (M, 차콜)', category: '의류', price: 45000,
-      location: '서대문구 연희동', createdAt: now - 1 * DAY, status: 'selling',
-      image: placeholderImage('🧥', '#f1edf5', '#c8bcd6'), seller: sellers.s3,
-      description: '작년 겨울에 두세 번 입었어요. 드라이클리닝 완료했습니다.\n실측 사이즈 문의 주세요.',
-    },
-    {
-      id: 4, title: '미니 에어프라이어 3.5L', category: '생활가전', price: 30000,
-      location: '마포구 합정동', createdAt: now - 2 * DAY, status: 'sold',
-      image: placeholderImage('🍟', '#f8e6f2', '#dcaed0'), seller: sellers.s1,
-      description: '자취할 때 쓰던 에어프라이어예요. 고구마 굽기 최고입니다 🍠\n바스켓 코팅 멀쩡해요.',
-    },
-    {
-      id: 5, title: '뮤지컬 티켓 2매 (토요일 저녁, R석)', category: '도서/티켓', price: 220000,
-      location: '종로구 혜화동', createdAt: now - 40 * MIN, status: 'selling',
-      image: placeholderImage('🎟️', '#ebe6fb', '#b9a9ec'), seller: sellers.s3,
-      description: '갑자기 일정이 생겨서 양도합니다. 정가 그대로 드려요.\n연석이고 모바일 티켓 전달 가능합니다.',
-    },
-    {
-      id: 6, title: '캠핑용 접이식 의자 2개', category: '기타', price: 25000,
-      location: '성동구 금호동', createdAt: now - 5 * DAY, status: 'reserved',
-      image: placeholderImage('⛺', '#f3eafa', '#cfb3e8'), seller: sellers.s2,
-      description: '캠핑 두 번 다녀왔어요. 수납 가방 포함입니다.\n두 개 같이만 판매해요.',
-    },
+  const AVATAR_ART = [
+    ['🍠', '#efe4fa', '#dcc6f2'], ['🍇', '#f8e6f2', '#e2b8d6'], ['🌙', '#ebe6fb', '#c9bdf0'],
+    ['🌷', '#f6eefb', '#dcc6f2'], ['🫐', '#ebe6fb', '#c3a0e6'],
   ];
+
+  function productImage(row) {
+    if (row.image_path) {
+      return `${CFG.SUPABASE_URL}/storage/v1/object/public/${CFG.PRODUCT_IMAGE_BUCKET}/` +
+        row.image_path.split('/').map(encodeURIComponent).join('/');
+    }
+    const art = CATEGORY_ART[row.category] || ['🍠', '#efe4fa', '#dcc6f2'];
+    return placeholderImage(...art);
+  }
+
+  function avatarImage(profile) {
+    if (profile && profile.avatar_url) return profile.avatar_url;
+    // 닉네임으로 늘 같은 기본 아바타가 나오게
+    const name = (profile && profile.nickname) || '';
+    let h = 0;
+    for (const ch of name) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+    return placeholderImage(...AVATAR_ART[h % AVATAR_ART.length]);
+  }
+
+  // DB 행 → 화면에서 쓰는 상품 모양
+  function fromRow(row) {
+    const s = row.seller || {};
+    return {
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      price: Number(row.price),
+      description: row.description,
+      location: row.location,
+      status: row.status,
+      favoriteCount: Number(row.favorite_count) || 0,
+      imagePath: row.image_path || null,
+      createdAt: new Date(row.created_at).getTime(),
+      image: productImage(row),
+      seller: { id: s.id || null, nickname: s.nickname || '알 수 없음', region: s.region || '', avatar: avatarImage(s) },
+    };
+  }
+
+  const products = [];
+  // 'loading' | 'ready' | 'error'
+  let loadState = 'loading';
+
+  async function loadProducts() {
+    loadState = 'loading';
+    listeners.forEach((fn) => fn(products));
+    try {
+      const url = `${CFG.SUPABASE_URL}/rest/v1/products?select=${encodeURIComponent(PRODUCT_SELECT)}&order=created_at.desc`;
+      const res = await fetch(url, { headers: { apikey: CFG.SUPABASE_PUBLISHABLE_KEY } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = await res.json();
+      products.splice(0, products.length, ...rows.map(fromRow));
+      loadState = 'ready';
+    } catch (err) {
+      console.error('[고구마] 상품을 불러오지 못했어요:', err);
+      loadState = 'error';
+    }
+    listeners.forEach((fn) => fn(products));
+  }
 
   // ---------- 유틸 ----------
   function formatPrice(won) {
@@ -102,28 +133,40 @@
   const listeners = [];
   function onChange(fn) { listeners.push(fn); }
 
-  // 내가 쓴 글: 메모리에만 추가 (새로고침하면 사라짐)
-  const ME = { nickname: '나', region: '내 동네', avatar: placeholderImage('🙂', '#efe4fa', '#dcc6f2') };
-  function addProduct(input) {
-    const product = {
-      id: Date.now(),
-      createdAt: Date.now(),
-      seller: { ...ME, region: input.location || ME.region },
-      image: input.image || placeholderImage('🍠', '#efe4fa', '#dcc6f2'),
-      ...input,
-    };
-    if (!product.image) product.image = placeholderImage('🍠', '#efe4fa', '#dcc6f2');
+  // 방금 DB에 저장한 상품(행)을 목록 맨 앞에 추가
+  function addProductRow(row) {
+    const product = fromRow(row);
     products.unshift(product);
     listeners.forEach((fn) => fn(products));
     return product;
   }
+
+  // 수정/상태 변경 후 DB에서 돌려받은 행으로 목록의 상품을 교체
+  function replaceProductRow(row) {
+    const product = fromRow(row);
+    const i = products.findIndex((p) => p.id === product.id);
+    if (i >= 0) products[i] = product; else products.unshift(product);
+    listeners.forEach((fn) => fn(products));
+    return product;
+  }
+
+  function removeProduct(id) {
+    const i = products.findIndex((p) => p.id === id);
+    if (i >= 0) products.splice(i, 1);
+    listeners.forEach((fn) => fn(products));
+  }
+
+  // 상품 조회 시 판매자까지 함께 가져오는 select 구문 (글쓰기 저장 후에도 사용)
+  const PRODUCT_SELECT = 'id,title,category,price,description,location,status,image_path,created_at,favorite_count,' +
+    'seller:profiles!products_seller_id_fkey(id,nickname,avatar_url,region)';
 
   function getProduct(id) { return products.find((p) => p.id === id); }
 
   window.Goguma = {
     CATEGORIES, STATUSES, products,
     formatPrice, timeAgo, statusLabel, escapeHtml, placeholderImage,
-    addProduct, getProduct, onChange,
+    addProductRow, replaceProductRow, removeProduct, getProduct, onChange, PRODUCT_SELECT,
+    loadProducts, getLoadState: () => loadState, productImage,
     // 각 화면 모듈이 여기에 자신을 등록합니다.
     list: null,   // { render() }
     detail: null, // { open(id), close() }

@@ -1,0 +1,45 @@
+/* =========================================================
+   로그인 / 회원가입 / 프로필 만들기 – 모든 클래스는 .auth- 접두사
+   색/글자/라운드는 base.css 변수만 사용
+   ========================================================= */
+.auth-backdrop { z-index: 110; } /* 글쓰기 모달 위로 */
+.auth-modal { max-width: 420px; }
+
+.auth-header {
+  position: sticky; top: 0; z-index: 3;
+  display: flex; align-items: center;
+  min-height: 64px; padding: 0 64px 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.auth-title { font-size: var(--fs-lg); font-weight: 700; color: var(--text); }
+
+.auth-body { display: flex; flex-direction: column; gap: 16px; padding: 20px 24px 24px; }
+.auth-field { display: flex; flex-direction: column; }
+.auth-help { margin-top: 6px; font-size: var(--fs-xs); color: var(--text-mute); }
+.auth-desc { font-size: var(--fs-sm); color: var(--text-sub); text-align: left; }
+
+.auth-reason {
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--purple-50); color: var(--purple-700);
+  font-size: var(--fs-sm); font-weight: 600;
+}
+
+.auth-error { font-size: var(--fs-xs); font-weight: 500; color: var(--danger); }
+.auth-error:empty { display: none; }
+
+.auth-switch { font-size: var(--fs-sm); color: var(--text-sub); text-align: center; }
+.auth-link {
+  border: 0; background: none; padding: 0 2px; cursor: pointer;
+  color: var(--purple-600); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+}
+.auth-link:hover { color: var(--purple-700); }
+
+.auth-sent-icon { font-size: var(--fs-2xl); text-align: center; }
+.auth-modal .btn:disabled { opacity: .6; cursor: progress; }
+
+@media (max-width: 600px) {
+  .auth-header { min-height: 56px; padding: 0 60px 0 16px; }
+  .auth-modal .modal-close { top: 8px; right: 8px; }
+  .auth-body { padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+}

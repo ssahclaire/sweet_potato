@@ -64,6 +64,31 @@
   overflow-wrap: anywhere;
 }
 
+/* 내 글 관리 (내 글일 때만) */
+.detail-owner {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 10px; padding: 14px 16px;
+  border: 1px solid var(--purple-200); border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.detail-owner-title { font-size: var(--fs-sm); font-weight: 700; color: var(--purple-700); }
+.detail-owner-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.detail-status-chip { justify-content: center; }
+.detail-status-chip[data-status="selling"].is-active {
+  background: var(--status-selling-bg); border-color: var(--status-selling-fg); color: var(--status-selling-fg);
+}
+.detail-status-chip[data-status="reserved"].is-active {
+  background: var(--status-reserved-bg); border-color: var(--status-reserved-fg); color: var(--status-reserved-fg);
+}
+.detail-status-chip[data-status="sold"].is-active {
+  background: var(--status-sold-bg); border-color: var(--status-sold-fg); color: var(--status-sold-fg);
+}
+.detail-status-chip.is-active { font-weight: 700; }
+.detail-owner-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.detail-delete { color: var(--danger); border-color: var(--border); }
+.detail-delete:hover { background: color-mix(in srgb, var(--danger) 8%, transparent); color: var(--danger); }
+.detail-owner .btn:disabled, .detail-owner .chip:disabled { opacity: .6; cursor: progress; }
+
 /* 7. 판매자 카드 */
 .detail-seller {
   display: flex;
@@ -104,6 +129,7 @@
   border-top: 1px solid var(--border);
 }
 .detail-action { flex: 1; min-width: 0; }
+.detail-like.is-liked { background: var(--purple-50); border-color: var(--purple-400); color: var(--purple-700); }
 .detail-actions .btn:disabled {
   background: var(--status-sold-bg);
   color: var(--status-sold-fg);

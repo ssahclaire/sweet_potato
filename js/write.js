@@ -1,12 +1,16 @@
 /* =========================================================
    [화면3] 글쓰기 – "내 물건 팔기" 모달
-   저장 기능 없음: Goguma.addProduct 로 메모리에만 추가합니다.
+   로그인한 회원만 열 수 있고, [작성 완료] 시 사진은 Storage(product-images),
+   글은 products 테이블에 저장합니다.
    ========================================================= */
 (function () {
   const G = window.Goguma;
   const esc = G.escapeHtml;
   const CONFIRM_MSG = '작성 중인 내용이 사라져요. 닫을까요?';
   const MAX_PRICE_DIGITS = 10;
+  const MAX_DESC_LENGTH = 500;
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // product-images 버킷 제한과 같게
+  const IMAGE_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 
   let root = null;        // #write-root
   let backdrop = null;    // 현재 열린 .modal-backdrop
@@ -14,7 +18,9 @@
   let lastFocus = null;   // 닫은 뒤 포커스를 돌려줄 요소
 
   function freshState() {
-    return { category: '', status: 'selling', imageUrl: undefined };
+    // editing: 수정 중인 상품 (null 이면 새 글), original: 수정 전 입력값 (바뀌었는지 비교용)
+    return { category: '', status: 'selling', imageUrl: undefined, imageFile: null, saving: false,
+      editing: null, original: null };
   }
 
   // ---------- 템플릿 ----------
@@ -82,9 +88,12 @@
 
               <div class="write-field" data-field="description">
                 <label class="label" for="write-desc">자세한 설명 <span class="write-req" aria-hidden="true">*</span></label>
-                <textarea id="write-desc" class="textarea" name="description" rows="6"
+                <textarea id="write-desc" class="textarea" name="description" rows="6" maxlength="${MAX_DESC_LENGTH}"
                           placeholder="예) 구매 시기, 사용 기간, 하자 여부, 구성품 등을 적어주세요.&#10;자세히 쓸수록 거래가 빨라져요 🍠"></textarea>
-                <p class="write-error" aria-live="polite"></p>
+                <div class="write-meta">
+                  <p class="write-error" aria-live="polite"></p>
+                  <span class="write-count"><span data-count="description">0</span>/${MAX_DESC_LENGTH}</span>
+                </div>
               </div>
 
               <div class="write-field" data-field="location">
@@ -102,6 +111,7 @@
             </div>
 
             <div class="write-footer">
+              <p class="write-error write-submit-error" role="alert"></p>
               <button type="submit" class="btn btn-primary btn-lg btn-block">작성 완료</button>
             </div>
           </form>
@@ -145,9 +155,46 @@
 
   function isDirty() {
     if (!backdrop) return false;
+    if (state.editing) return snapshot() !== state.original;
     const v = values();
-    return !!(v.title || v.category || v.priceDigits || v.description || v.location ||
+    const locationChanged = v.location && v.location !== (state.defaultLocation || '');
+    return !!(v.title || v.category || v.priceDigits || v.description || locationChanged ||
       state.imageUrl || state.status !== 'selling');
+  }
+
+  function snapshot() {
+    return JSON.stringify({ ...values(), status: state.status, newImage: !!state.imageFile });
+  }
+
+  // 수정 모드: 기존 글 내용으로 채우기
+  function fillForm(p) {
+    state.editing = p;
+    state.category = p.category;
+    state.status = p.status;
+    $('.write-title').textContent = '글 수정하기';
+    $('.write-footer .btn').textContent = '수정 완료';
+
+    $('#write-title-input').value = p.title || '';
+    $('#write-desc').value = p.description || '';
+    $('#write-location').value = p.location || '';
+    $('#write-price').value = formatDigits(String(p.price ?? ''));
+    $('.write-share-hint').classList.toggle('hidden', String(p.price) !== '0');
+    // 글자 수 표시 갱신
+    $('#write-title-input').dispatchEvent(new Event('input'));
+    $('#write-desc').dispatchEvent(new Event('input'));
+
+    selectRadio($('.write-chips'), 'data-category', p.category);
+    selectRadio($('.write-status'), 'data-status', p.status);
+
+    if (p.image) {
+      const img = $('.write-upload-preview');
+      img.src = p.image;
+      img.classList.remove('hidden');
+      $('.write-upload-empty').classList.add('hidden');
+      $('.write-upload-change').classList.remove('hidden');
+      $('.write-upload').classList.add('has-image');
+    }
+    state.original = snapshot();
   }
 
   function selectRadio(group, attr, value) {
@@ -192,8 +239,14 @@
       e.target.value = '';
       return;
     }
+    if (file.size > MAX_IMAGE_BYTES) {
+      e.target.value = '';
+      window.alert('사진은 5MB 이하만 올릴 수 있어요.');
+      return;
+    }
     if (state.imageUrl) URL.revokeObjectURL(state.imageUrl);
     state.imageUrl = URL.createObjectURL(file);
+    state.imageFile = file;
 
     const img = $('.write-upload-preview');
     img.src = state.imageUrl;
@@ -224,26 +277,87 @@
     if (d !== '') setError('price', '');
   }
 
-  function onSubmit(e) {
+  function setSaving(on) {
+    state.saving = on;
+    const btn = $('.write-footer .btn');
+    btn.disabled = on;
+    btn.textContent = on
+      ? (state.editing ? '저장하는 중…' : '올리는 중…')
+      : (state.editing ? '수정 완료' : '작성 완료');
+  }
+
+  // 사진 업로드 → 상품 저장. 저장에 실패하면 올린 사진은 지움
+  async function onSubmit(e) {
     e.preventDefault();
+    if (state.saving) return;
+    $('.write-submit-error').textContent = '';
     const errors = validate();
     if (errors.length) {
       focusField(errors[0]);
       return;
     }
+    const sb = G.auth.client;
+    const user = G.auth.getUser();
+    const profile = G.auth.getProfile();
+    if (!user || !profile) {
+      $('.write-submit-error').textContent = '로그인이 풀렸어요. 다시 로그인한 뒤 작성 완료를 눌러 주세요.';
+      G.auth.requireProfile(() => {}, '다시 로그인해 주세요.');
+      return;
+    }
+
     const v = values();
-    G.addProduct({
-      title: v.title,
-      category: v.category,
-      price: Number(v.priceDigits),
-      description: v.description,
-      location: v.location,
-      status: state.status,
-      image: state.imageUrl || undefined,
-    });
-    state.imageUrl = undefined; // 등록된 상품이 계속 사용하므로 revoke 하지 않음
-    close(true);
-    showToast('글이 등록되었어요 🍠');
+    setSaving(true);
+    let imagePath = null;
+    try {
+      if (state.imageFile) {
+        const ext = IMAGE_EXT[state.imageFile.type] || 'jpg';
+        // 원래 파일 이름은 쓰지 않음 (실명 등이 들어 있을 수 있음)
+        imagePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const up = await sb.storage.from(window.GOGUMA_CONFIG.PRODUCT_IMAGE_BUCKET)
+          .upload(imagePath, state.imageFile, { contentType: state.imageFile.type, upsert: false });
+        if (up.error) throw Object.assign(up.error, { step: 'upload' });
+      }
+
+      const fields = {
+        title: v.title,
+        category: v.category,
+        price: Number(v.priceDigits),
+        description: v.description,
+        location: v.location,
+        status: state.status,
+      };
+      const editing = state.editing;
+      const query = editing
+        // 수정: 새 사진을 골랐을 때만 사진 경로를 바꿈
+        ? sb.from('products').update(imagePath ? { ...fields, image_path: imagePath } : fields).eq('id', editing.id)
+        : sb.from('products').insert({ ...fields, seller_id: profile.id, image_path: imagePath });
+      const { data, error } = await query.select(G.PRODUCT_SELECT).single();
+      if (error) throw Object.assign(error, { step: 'save' });
+
+      if (editing) {
+        // 사진을 바꿨으면 예전 사진 파일은 지움
+        if (imagePath && editing.imagePath) {
+          sb.storage.from(window.GOGUMA_CONFIG.PRODUCT_IMAGE_BUCKET).remove([editing.imagePath]).catch(() => {});
+        }
+        G.replaceProductRow(data);
+        close(true);
+        showToast('글을 수정했어요 ✏️');
+      } else {
+        G.addProductRow(data);
+        close(true);
+        showToast('글이 등록되었어요 🍠');
+      }
+    } catch (err) {
+      console.error('[고구마] 글을 저장하지 못했어요:', err);
+      if (imagePath) {
+        sb.storage.from(window.GOGUMA_CONFIG.PRODUCT_IMAGE_BUCKET).remove([imagePath]).catch(() => {});
+      }
+      if (!backdrop) return;
+      setSaving(false);
+      $('.write-submit-error').textContent = err.step === 'upload'
+        ? '사진을 올리지 못했어요. 5MB 이하의 JPG, PNG, WebP, GIF인지 확인해 주세요.'
+        : '글을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
+    }
   }
 
   function onKeydown(e) {
@@ -291,6 +405,18 @@
 
     $('#write-price').addEventListener('input', onPriceInput);
 
+    // 자세한 설명: 최대 500자 (maxlength가 입력·붙여넣기를 막고, 여기서는 글자 수만 표시)
+    const descInput = $('#write-desc');
+    descInput.addEventListener('input', () => {
+      if (descInput.value.length > MAX_DESC_LENGTH) {
+        descInput.value = descInput.value.slice(0, MAX_DESC_LENGTH);
+      }
+      const n = descInput.value.length;
+      $('[data-count="description"]').textContent = n;
+      $('.write-field[data-field="description"] .write-count')
+        .classList.toggle('is-max', n >= MAX_DESC_LENGTH);
+    });
+
     [['#write-desc', 'description'], ['#write-location', 'location']].forEach(([sel, name]) => {
       const el = $(sel);
       el.addEventListener('input', () => { if (el.value.trim()) setError(name, ''); });
@@ -321,7 +447,8 @@
   }
 
   // ---------- 공개 API ----------
-  function open() {
+  // product 를 넘기면 수정 모드, 없으면 새 글
+  function open(product) {
     root = root || document.getElementById('write-root');
     if (!root || backdrop) return;
     lastFocus = document.activeElement;
@@ -330,6 +457,17 @@
     backdrop = root.querySelector('.modal-backdrop');
     document.body.classList.add('no-scroll');
     bind();
+    if (product) {
+      fillForm(product);
+      $('#write-title-input').focus({ preventScroll: true });
+      return;
+    }
+    // 거래 동네는 내 프로필 동네로 미리 채워 둠 (바꿀 수 있음)
+    const profile = G.auth && G.auth.getProfile();
+    if (profile && profile.region) {
+      $('#write-location').value = profile.region;
+      state.defaultLocation = profile.region;
+    }
     $('#write-title-input').focus({ preventScroll: true });
   }
 
@@ -353,4 +491,5 @@
   }
 
   G.write = { open, close };
+  G.toast = showToast;
 })();

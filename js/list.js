@@ -49,6 +49,8 @@
               placeholder="상품명이나 동네를 검색해 보세요" aria-label="상품 검색" autocomplete="off" />
           </div>
           <div class="list-actions">
+            <span class="list-user hidden" title="내 닉네임"></span>
+            <button type="button" class="btn btn-outline hidden" data-action="chat">채팅</button>
             <button type="button" class="btn btn-primary" data-action="write">글쓰기</button>
             <button type="button" class="btn btn-outline" data-action="login">로그인</button>
           </div>
@@ -102,9 +104,38 @@
     `;
   }
 
+  function loadingHtml() {
+    return `
+      <div class="list-empty" role="status">
+        <p class="list-empty-icon" aria-hidden="true">🍠</p>
+        <p class="list-empty-title">고구마를 불러오는 중이에요…</p>
+      </div>
+    `;
+  }
+
+  function errorHtml() {
+    return `
+      <div class="list-empty" role="alert">
+        <p class="list-empty-icon" aria-hidden="true">😢</p>
+        <p class="list-empty-title">상품을 불러오지 못했어요</p>
+        <p class="list-empty-desc">인터넷 연결을 확인하고 다시 시도해 주세요.</p>
+        <button type="button" class="btn btn-outline list-retry" data-action="retry">다시 시도</button>
+      </div>
+    `;
+  }
+
   // ---------- 그리기 ----------
   function renderGrid() {
     if (!gridEl) return;
+    const loadState = G.getLoadState ? G.getLoadState() : 'ready';
+    if (loadState !== 'ready' && !G.products.length) {
+      countEl.textContent = '';
+      gridEl.classList.add('is-empty');
+      gridEl.setAttribute('aria-busy', String(loadState === 'loading'));
+      gridEl.innerHTML = loadState === 'error' ? errorHtml() : loadingHtml();
+      return;
+    }
+    gridEl.removeAttribute('aria-busy');
     const items = getFiltered();
     countEl.textContent = items.length ? `고구마 ${items.length}개` : '';
     if (!items.length) {
@@ -127,10 +158,16 @@
       }
       const btn = ev.target.closest('[data-action]');
       if (!btn) return;
-      if (btn.dataset.action === 'write') {
-        if (G.write) G.write.open();
+      if (btn.dataset.action === 'chat') {
+        if (G.chat) G.chat.openList();
+      } else if (btn.dataset.action === 'write') {
+        if (G.write) G.auth.requireProfile(() => G.write.open(), '글을 쓰려면 로그인해 주세요.');
       } else if (btn.dataset.action === 'login') {
-        alert('로그인은 준비 중이에요');
+        if (G.auth.getSession()) {
+          if (window.confirm('로그아웃할까요?')) G.auth.signOut();
+        } else {
+          G.auth.open({ mode: 'login' });
+        }
       }
     });
 
@@ -164,6 +201,10 @@
 
     // 카드 클릭 → 상세
     gridEl.addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-action="retry"]')) {
+        G.loadProducts();
+        return;
+      }
       const card = ev.target.closest('.list-card');
       if (!card) return;
       const id = Number(card.dataset.id);
@@ -181,11 +222,26 @@
       bindEvents();
       mounted = true;
     }
+    renderAuth();
     renderGrid();
+  }
+
+  // 헤더: 로그인 상태 표시
+  function renderAuth() {
+    if (!root || !mounted) return;
+    const userEl = root.querySelector('.list-user');
+    const loginBtn = root.querySelector('[data-action="login"]');
+    const session = G.auth.getSession();
+    const profile = G.auth.getProfile();
+    loginBtn.textContent = session ? '로그아웃' : '로그인';
+    userEl.textContent = profile ? `🍠 ${profile.nickname}` : '';
+    userEl.classList.toggle('hidden', !profile);
+    root.querySelector('[data-action="chat"]').classList.toggle('hidden', !profile);
   }
 
   // 새 글 등록 시 목록 갱신
   G.onChange(() => renderGrid());
+  G.auth.onChange(() => renderAuth());
 
   G.list = { render };
 })();
